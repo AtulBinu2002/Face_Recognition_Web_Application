@@ -1,0 +1,7 @@
+Flask==3.0.1
+deepface==0.0.82
+opencv-python==4.7.0.72
+numpy==1.23.5
+face-recognition==1.3.0
+
+pip install Flask==3.0.1 deepface==0.0.82 opencv-python==4.7.0.72 numpy==1.23.5 face-recognition==1.3.0
