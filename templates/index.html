@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition</title>
+    <style> 
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('{{ url_for("static", filename="bg.jpg") }}');
+            background-repeat: no-repeat;
+            background-attachment: fixed;  
+            background-size: cover;
+            color: white;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        form {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .flash-messages {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .flash-messages li {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .table-container {
+            border-radius: 10px; 
+            overflow-x: auto;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .face-details {
+            background-color: rgba(36, 132, 7, 0.5); 
+            padding: 10px; 
+            border-radius: 5px; 
+            margin-right: 20px; 
+            max-width: 300px;
+            max-height: 400px;   
+            display: inline-block;
+            margin-right: 20px;
+            text-align: left; 
+            max-width: 300px;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .database-names-box {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(255, 0, 0, 0.793);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .database-names-scrollable {
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .database-names-scrollable ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .database-names-scrollable li {
+            margin: 5px 0;
+        }
+        #messagesContainer {
+            position: relative;
+            z-index: 2; /* Ensure it appears above other elements */
+            margin-left: 30px;
+        }
+
+    </style>
+    <script>
+        function showPleaseWait() {
+            console.log('Showing please wait...');
+            
+            // Check if a file has been selected
+            var fileInput = document.getElementById('fileInput'); // Change 'fileInput' to the actual ID of your file input element
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                console.log('No file selected. Aborting...');
+                    document.getElementById('errorContainer').innerHTML = "<b>Please select an image for analysis </b>";
+                    document.getElementById('successContainer').innerHTML = "";
+                    document.getElementById('analyse').innerHTML = "";
+                return;
+            }
+
+            document.getElementById('pleaseWaitContainer').style.display = 'block';
+            document.getElementById('errorContainer').innerHTML = ""; // Reset error message
+            document.getElementById('successContainer').innerHTML = ""; // Reset success message
+            document.getElementById('analyse').innerHTML = "";
+
+            // Optionally, you can reset the recognized face image here if needed
+            // document.getElementById('recognizedFace').src = "";
+        }
+
+        function addperson1(){
+            document.getElementById('analyse').innerHTML = "";
+            var personName = document.getElementById('add_text').value;
+            document.getElementById('errorContainer').innerHTML = ""; // Reset error message
+            document.getElementById('successContainer').innerHTML = ""; // Reset success message
+            document.getElementById('analyse').innerHTML = "";
+            var fileInput = document.getElementById('add_file'); // Change 'fileInput' to the actual ID of your file input element
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0  || personName.length === 0) {
+                console.log('No file selected. Aborting...');
+                document.getElementById('errorContainer').innerHTML = "<b> Input a name and choose an image for adding to data source.</b>";
+                return;
+            
+            document.getElementById('pleaseWaitContainer').style.display = 'block';
+            }
+        }
+
+        function showErrorMessage(message) {
+            console.log('Showing error message:', message);
+            document.getElementById('errorContainer').innerHTML = "<b>" + message + "</b>";
+        }
+
+        function showSuccessMessage(message) {
+            console.log('Showing success message:', message);
+            document.getElementById('errorContainer').innerHTML = "";
+            document.getElementById('successContainer').innerHTML = "<b>" + message + "</b>";
+            // Optionally, you can reset the recognized face image here if needed
+            // document.getElementById('recognizedFace').src = "";
+        }
+        document.getElementById('detectForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            console.log('Form submitted!');
+
+            var formData = new FormData(this);
+
+            fetch('/detect', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response data:', data);
+
+                if (data.error) {
+                    showErrorMessage(data.error);
+                } else {
+                    showSuccessMessage(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('An error occurred. Please try again.');
+            })
+            .finally(() => {
+                console.log('Hiding please wait...');
+                document.getElementById('pleaseWaitMessage').style.display = 'none';
+            });
+        });
+
+        document.getElementById('addPersonForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            console.log('Form submitted!');
+
+            var formData = new FormData(this);
+
+            fetch('/add_person', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response data:', data);
+
+                if (data.error) {
+                    showErrorMessage(data.error);
+                } else {
+                    showSuccessMessage(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('An error occurred. Please try again.');
+            })
+            .finally(() => {
+                console.log('Hiding please wait...');
+                document.getElementById('pleaseWaitMessage').style.display = 'none';
+            });
+        });
+    </script>
+</head>
+<body>
+    <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo" style="position: fixed; top: 10px; left: 10px; max-width: 100px; height: auto;">
+    <h1><b>Face Recognition</b></h1>
+    <marquee hspace="150px" behavior="scroll" direction="left" height:0px style="top: 0px;  color: rgb(248, 255, 55);"><b>This is a user friendly web application used for face detection and analysis</b></marquee>
+
+    <form id="detectForm" action="/detect" method="post" enctype="multipart/form-data">
+        <input id="fileInput" type="file" name="file" accept="image/*" required>
+        <button type="submit" style="background-color: rgba(15, 196, 42, 0.847);" onclick="showPleaseWait()"><b>Analyze Faces</b></button>
+        <h5> Note that only .png, .jpg, .jpeg extensions are allowed</h5>
+    </form>
+    
+    <div id="messagesContainer">
+        <div id="errorContainer" style="margin-top: 20px; color: rgb(255, 145, 0);"><br></div>
+        <div id="successContainer" style="margin-top: 20px; color: rgb(14, 255, 14);"></div>
+        <div id="pleaseWaitContainer" style="margin-top: 20px; text-align: center; display: none;">
+            <p><b>Please wait, Analyzing the image...</b></p>
+        </div>
+    </div>
+
+    {% if error %}
+    <script>
+        showErrorMessage("{{ error }}");
+    </script>
+    {% endif %}
+
+    {% if message %}
+    <script>
+        showSuccessMessage("{{ message }}");
+    </script>
+    {% endif %}
+
+    <hr>
+
+    <!-- {% if deepfake_results %}
+        <div class="table-container">
+            {% for i in range(deepfake_results|length) %}
+                {% set deepfake_result = deepfake_results[i] %}
+                <div class="face-details">
+                    <h4>Deepfake: {% if deepfake_result['is_fake'] %} Yes {% else %} No {% endif %}</h4>
+                    <p>Confidence: {{ deepfake_result['confidence'] }}%</p>
+                    <p>Not a deepfake: {{ 100 - deepfake_result['confidence'] }}%</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %} -->
+
+
+    <div class="table-container" id="analyse">
+        {% for i in range(faces|length) %}
+            {% set face = faces[i] %}
+            <div class="face-details">
+                <h4>Recognized Name: {{ recognized_names[i] }}</h4>
+                <img src="data:image/png;base64,{{ cropped_faces[i] }}" alt="Detected Face {{ i+1 }}" style="height: 100px; width: auto;">
+                <p>Emotion: {{ face['dominant_emotion'].title() }} (Accuracy: {{ '%.2f' | format(face['emotion'][face['dominant_emotion']]) }}%)</p>
+                <p>Gender: {{ face['dominant_gender'] }} (Accuracy: {{ '%.2f' | format(face['gender'][face['dominant_gender']]) }}%)</p>
+                <p>Race: {{ face['dominant_race'].title() }} (Accuracy: {{ '%.2f' | format(face['race'][face['dominant_race']]) }}%)</p>                    
+            </div>
+        {% endfor %}
+    </div>
+
+    <hr>
+
+    <h2>Add Image to Data Source</h2>
+    <form id="addPersonForm" action="/add_person" method="post" enctype="multipart/form-data">
+        <div style="text-align: center;">
+            <label for="person_name" style="margin-left:50px;">Name:</label>
+            <input id="add_text" type="text" name="name" required>
+            <input id="add_file" type="file" name="file" accept="image/*" required>
+            <br>
+            <br>
+            <button  type="submit" style="background-color: rgba(15, 196, 42, 0.847);"" onclick="addperson1()"><b>Add Image</b></button>
+        </div>
+    </form>
+</body>
+</html>
